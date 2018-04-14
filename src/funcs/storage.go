@@ -1,7 +1,7 @@
 package funcs
 
 import (
-	"../g"
+	"smartping/src/g"
 	_ "github.com/gy-games-libs/go-sqlite3"
 	"github.com/gy-games-libs/seelog"
 	"time"

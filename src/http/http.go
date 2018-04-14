@@ -1,7 +1,7 @@
 package http
 
 import (
-	"../g"
+	"smartping/src/g"
 	"encoding/json"
 	"fmt"
 	"github.com/gy-games-libs/seelog"

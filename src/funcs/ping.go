@@ -1,8 +1,8 @@
 package funcs
 
 import (
-	"../g"
-	"../nettools"
+	"smartping/src/g"
+	"smartping/src/nettools"
 	"github.com/gy-games-libs/seelog"
 	"strconv"
 	"sync"

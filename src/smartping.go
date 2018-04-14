@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./funcs"
-	"./g"
-	"./http"
+	"smartping/src/funcs"
+	"smartping/src/g"
+	"smartping/src/http"
 	"flag"
 	"fmt"
 	"github.com/gy-games-libs/cron"

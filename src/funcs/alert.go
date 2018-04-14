@@ -1,8 +1,8 @@
 package funcs
 
 import (
-	"../g"
-	"../nettools"
+	"smartping/src/g"
+	"smartping/src/nettools"
 	"bytes"
 	"fmt"
 	"github.com/gy-games-libs/seelog"

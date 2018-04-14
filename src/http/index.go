@@ -1,7 +1,7 @@
 package http
 
 import (
-	"../g"
+	"smartping/src/g"
 	"net/http"
 	"path/filepath"
 	"strings"

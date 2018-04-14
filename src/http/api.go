@@ -1,7 +1,7 @@
 package http
 
 import (
-	"../g"
+	"smartping/src/g"
 	"bytes"
 	"encoding/json"
 	"fmt"
