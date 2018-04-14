@@ -125,6 +125,108 @@ func configApiRoutes() {
 		RenderJson(w, preout)
 	})
 
+	//avg data api 
+	http.HandleFunc("/api/pingavg.json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		r.ParseForm()
+		var tableip string
+		var where string
+		var timeStart int64
+		var timeEnd int64
+		var timeStartStr string
+		var timeEndStr string
+		if len(r.Form["starttime"]) > 0 && len(r.Form["endtime"]) > 0 {
+			timeStartStr = r.Form["starttime"][0]
+			if timeStartStr != "" {
+				tms, _ := time.Parse("2006-01-02 15:04", timeStartStr)
+				timeStart = tms.Unix() - 8*60*60
+			} else {
+				timeStart = time.Now().Unix() - 2*60*60
+				timeStartStr = time.Unix(timeStart, 0).Format("2006-01-02 15:04")
+			}
+			timeEndStr = r.Form["endtime"][0]
+			if timeEndStr != "" {
+				tmn, _ := time.Parse("2006-01-02 15:04", timeEndStr)
+				timeEnd = tmn.Unix() - 8*60*60
+			} else {
+				timeEnd = time.Now().Unix()
+				timeEndStr = time.Unix(timeEnd, 0).Format("2006-01-02 15:04")
+			}
+		} else {
+			timeStart = time.Now().Unix() - 2*60*60
+			timeStartStr = time.Unix(timeStart, 0).Format("2006-01-02 15:04")
+			timeEnd = time.Now().Unix()
+			timeEndStr = time.Unix(timeEnd, 0).Format("2006-01-02 15:04")
+		}
+		cnt := int((timeEnd - timeStart) / 60)
+		cnt = 0
+		var lastcheck []string
+		var maxdelay []string
+		var mindelay []string
+		var avgdelay []string
+		var sendpk []string
+		var revcpk []string
+		var losspk []string
+		for i := 0; i < cnt+1; i++ {
+			lastcheck = append(lastcheck, time.Unix(timeStart, 0).Format("2006-01-02 15:04"))
+			maxdelay = append(maxdelay, "0")
+			mindelay = append(mindelay, "0")
+			avgdelay = append(avgdelay, "0")
+			sendpk = append(sendpk, "0")
+			revcpk = append(revcpk, "0")
+			losspk = append(losspk, "0")
+			timeStart = timeStart + 60
+		}
+		if len(r.Form["ip"]) > 0 {
+			tableip = r.Form["ip"][0]
+		} else {
+			tableip = ""
+		}
+		g.DLock.Lock()
+		// querySql := "SELECT logtime,maxdelay,mindelay,avgdelay,sendpk,revcpk,losspk,lastcheck FROM `pinglog-" + tableip + "` where 1=1 and lastcheck between '" + timeStartStr + "' and '" + timeEndStr + "' " + where + ""
+		querySql := "SELECT avg(avgdelay) as avgdelay, sum(losspk)/sum(sendpk) as lossrate FROM `pinglog-" + tableip + "` where 1=1 and lastcheck between '" + timeStartStr + "' and '" + timeEndStr + "' " + where + ""
+		// avg ping info 
+		avg_avgdelay := 0.0
+		avg_lossrate := 0.0
+		rows, err := g.Db.Query(querySql)
+		g.DLock.Unlock()
+		seelog.Debug("[func:/api/ping.json] Query", querySql)
+		if err != nil {
+			seelog.Error("[func:/api/ping.json] Query", err)
+		} else {
+			for rows.Next() {
+				// l := new(g.LogInfo)
+				// err := rows.Scan(&l.Avgdelay, &l.Lossrate)
+				err := rows.Scan(avg_avgdelay, avg_lossrate)
+
+				if err != nil {
+					seelog.Error("[/api/ping.json] Rows", err)
+					continue
+				}
+				// for n, v := range lastcheck {
+				// 	if v == l.Lastcheck {
+				// 		maxdelay[n] = l.Avgdelay
+				// 		mindelay[n] = l.Avgdelay
+				// 		avgdelay[n] = l.Avgdelay
+				// 		losspk[n] = l.Lossrate
+				// 		sendpk[n] = l.Lossrate
+				// 		revcpk[n] = l.Lossrate
+				// 	}
+				// }
+				// avg_avgdelay = l.Avgdelay
+				// avg_lossrate = l.Lossrate
+			}
+			rows.Close()
+		}
+
+		preout := map[string]float64{
+			"avgdelay":  avg_avgdelay,
+			"lossrate":  avg_lossrate,
+		}
+		RenderJson(w, preout)
+	})
+
 	//Topology data api
 	http.HandleFunc("/api/topology.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
