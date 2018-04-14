@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+
 func configApiRoutes() {
 
 	//config api
@@ -187,21 +188,20 @@ func configApiRoutes() {
 		// querySql := "SELECT logtime,maxdelay,mindelay,avgdelay,sendpk,revcpk,losspk,lastcheck FROM `pinglog-" + tableip + "` where 1=1 and lastcheck between '" + timeStartStr + "' and '" + timeEndStr + "' " + where + ""
 		querySql := "SELECT avg(avgdelay) as avgdelay, sum(losspk)/sum(sendpk) as lossrate FROM `pinglog-" + tableip + "` where 1=1 and lastcheck between '" + timeStartStr + "' and '" + timeEndStr + "' " + where + ""
 		// avg ping info 
-		avg_avgdelay := 0.0
-		avg_lossrate := 0.0
+		avg_avgdelay := -1.0
+		avg_lossrate := -1.0
 		rows, err := g.Db.Query(querySql)
 		g.DLock.Unlock()
-		seelog.Debug("[func:/api/ping.json] Query", querySql)
+		seelog.Debug("[func:/api/pingavg.json] Query", querySql)
 		if err != nil {
-			seelog.Error("[func:/api/ping.json] Query", err)
+			seelog.Error("[func:/api/pingavg.json] Query", err)
 		} else {
 			for rows.Next() {
 				// l := new(g.LogInfo)
 				// err := rows.Scan(&l.Avgdelay, &l.Lossrate)
-				err := rows.Scan(avg_avgdelay, avg_lossrate)
-
+				err := rows.Scan(&avg_avgdelay, &avg_lossrate)
 				if err != nil {
-					seelog.Error("[/api/ping.json] Rows", err)
+					seelog.Error("[/api/pingavg.json] Rows", err)
 					continue
 				}
 				// for n, v := range lastcheck {
