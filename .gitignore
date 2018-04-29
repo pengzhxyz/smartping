@@ -1,6 +1,10 @@
 # Created by .ignore support plugin (hsz.mobi)  
   
 .idea/  
+.vscode/
+/var/
+src/debug
+src/logs
   
 ## File-based project format:  
 *.exe

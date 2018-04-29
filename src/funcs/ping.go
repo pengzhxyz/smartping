@@ -15,7 +15,7 @@ func StartPing(t g.Target, wg *sync.WaitGroup) {
 	stat := g.PingSt{}
 	stat.MinDelay = -1
 	lossPK := 0
-	for i := 0; i < 20; i++ {
+	for i := 0; i    < 20; i++ {
 		starttime := time.Now().UnixNano()
 		delay, err := nettools.RunPing(t.Addr, 3*time.Second, 64, i)
 		if err == nil {
@@ -37,7 +37,11 @@ func StartPing(t g.Target, wg *sync.WaitGroup) {
 		duringtime := time.Now().UnixNano() - starttime
 		time.Sleep(time.Duration(3000*1000000-duringtime) * time.Nanosecond)
 	}
-	stat.AvgDelay = stat.AvgDelay / float64(stat.RevcPk)
+	if stat.RevcPk > 0{
+		stat.AvgDelay = stat.AvgDelay / float64(stat.RevcPk)
+	} else{
+		stat.AvgDelay = 0.0
+	}
 	seelog.Debug("[func:IcmpPing] Finish Addr:", t.Addr, " MaxDelay:", stat.MaxDelay, " MinDelay:", stat.MinDelay, " AvgDelay:", stat.AvgDelay, " Revc:", stat.RevcPk, " LossPK:", stat.LossPk)
 	StoragePing(stat, t)
 	wg.Done()
