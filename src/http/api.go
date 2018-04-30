@@ -186,7 +186,7 @@ func configApiRoutes() {
 		}
 		g.DLock.Lock()
 		// querySql := "SELECT logtime,maxdelay,mindelay,avgdelay,sendpk,revcpk,losspk,lastcheck FROM `pinglog-" + tableip + "` where 1=1 and lastcheck between '" + timeStartStr + "' and '" + timeEndStr + "' " + where + ""
-		querySql := "SELECT avg(avgdelay) as avgdelay, (1.0 - (cast(sum(revcpk) as FLOAT)/cast(sum(sendpk) as FLOAT)) as lossrate FROM `pinglog-" + tableip + "` where 1=1 and lastcheck between '" + timeStartStr + "' and '" + timeEndStr + "' " + where + ""
+		querySql := "SELECT avg(avgdelay) as avgdelay, (1.0 - (cast(sum(revcpk) as FLOAT)/cast(sum(sendpk) as FLOAT))) as lossrate FROM `pinglog-" + tableip + "` where 1=1 and lastcheck between '" + timeStartStr + "' and '" + timeEndStr + "' " + where + ""
 		// avg ping info 
 		avg_avgdelay := -1.0
 		avg_lossrate := -1.0
