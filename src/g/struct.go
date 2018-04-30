@@ -26,6 +26,9 @@ type Target struct {
 	Name        string
 	Addr        string
 	Type        string
+	Country 	string
+	City		string
+	Carrier		string
 	Thdchecksec int
 	Thdoccnum   int
 	Thdavgdelay int

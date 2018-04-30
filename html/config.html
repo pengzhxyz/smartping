@@ -202,10 +202,18 @@
                     </tbody>
                     <tfoot>
                     <tr>
-                      <td colspan="8" style="text-align: center"><input style='margin:4px 3px 0 0;' type='button' onclick='addTr();' class='btn btn-small' value='Add Agent'></td>
+                      <td colspan="8" style="text-align: center">
+                        <input style='margin:4px 3px 0 0;' type='button' onclick='addTr();' class='btn btn-small' value='Add Agent'>
+                        从json文件导入:
+                        <input type="file" name="fileTrans" style='margin:4px 3px 0 0;' class="file" accept=".json" id="load-input"/>
+                      </td>
                     </tr>
                     </tfoot>
                   </table>
+                  <!-- test file read -->
+                  <!-- <form id="form" >
+                    <input type="file" name="fileTrans" change="loadAddData" id="load-input"/>
+                  </form> -->
                   <input type="hidden" value="0" class="agentnum" />
                 </div>
                 <!-- /widget-content -->
@@ -241,7 +249,28 @@
 <script src="assets/js/jquery-1.7.2.min.js"></script>
 <script src="assets/js/bootstrap.js"></script>
 <script>
-
+    function gettargets(){
+          targets = []
+          $("input[name^='tsnum']").each(function(i, t) {
+              eval($(this).val());
+          });
+          $("[name^='targets']").each(function(i, el) {
+              if (el.name.indexOf("Thdchecksec")>0 || el.name.indexOf("Thdoccnum")>0 || el.name.indexOf("Thdloss")>0 || el.name.indexOf("Thdavgdelay")>0){
+                  eval(el.name+"="+$(this).val()+"");
+              }else{
+                  eval(el.name+"=\""+$(this).val()+"\"");
+              }
+              console.log(el.name)
+          });
+          //$.grep(targets, function(n) {return $.trim(n).length > 0;})
+          ntargets  = []
+          $.each(targets,function(index,value){
+              if (value) {
+                  ntargets.push(value)
+              }
+          });
+          return ntargets;
+    }
     function saveconf(){
         targets = []
         $("input[name^='tsnum']").each(function(i, t) {
@@ -306,8 +335,43 @@
     }
     function addTr(){
         i = $(".agentnum").val()
-        $(".agentlist").append("<tr><td><input name='tsnum["+i+"]' value='targets["+i+"]={}' type='hidden'><input  name='targets["+i+"][\"Name\"]' value='' style='width:90%'></td><td><input  name='targets["+i+"][\"Addr\"]' style='width:90%' value=''></td><td><select name='targets["+i+"][\"Type\"]'  style='width:47px;'><option value='C'>C</option><option value='CS'>CS</option></select></td><td><input  name='targets["+i+"][\"Thdchecksec\"]'  style='width:90%' value='"+$("#Thdchecksec").val()+"'> </td><td><input  name='targets["+i+"][\"Thdloss\"]' style='width:90%' value='"+$("#Thdloss").val()+"'> </td><td><input  name='targets["+i+"][\"Thdavgdelay\"]'  style='width:90%' value='"+$("#Thdavgdelay").val()+"'> </td><td><input  name='targets["+i+"][\"Thdoccnum\"]' style='width:90%' value='"+$("#Thdoccnum").val()+"'> </td><td> <i onclick='deleteTr(this);' class='icon-large icon-trash'></i> </td></tr>");
+        $(".agentlist").append("<tr><td><input name='tsnum["+i+"]' value='targets["+i+"]={}' type='hidden'><input  name='targets["+i+"][\"Name\"]' placeholder='Name' value='' style='width:90%'><input name='targets["+i+"][\"Country\"]' placeholder='Country' value='' style='width:90%'><input name='targets["+i+"][\"City\"]' placeholder='City' value='' style='width:90%'><input name='targets["+i+"][\"Carrier\"]' placeholder='Carrier' value='' style='width:90%'></td><td><input  name='targets["+i+"][\"Addr\"]' style='width:90%' value=''></td><td><select name='targets["+i+"][\"Type\"]'  style='width:47px;'><option value='C'>C</option><option value='CS'>CS</option></select></td><td><input  name='targets["+i+"][\"Thdchecksec\"]'  style='width:90%' value='"+$("#Thdchecksec").val()+"'> </td><td><input  name='targets["+i+"][\"Thdloss\"]' style='width:90%' value='"+$("#Thdloss").val()+"'> </td><td><input  name='targets["+i+"][\"Thdavgdelay\"]'  style='width:90%' value='"+$("#Thdavgdelay").val()+"'> </td><td><input  name='targets["+i+"][\"Thdoccnum\"]' style='width:90%' value='"+$("#Thdoccnum").val()+"'> </td><td> <i onclick='deleteTr(this);' class='icon-large icon-trash'></i> </td></tr>");
         $(".agentnum").val(parseInt(i)+1);
+    }
+    function loadAddData(){
+        console.info('load add data start');
+        var files = $('input[name="fileTrans"]').prop('files');//获取到文件列表
+        if(files.length == 0){
+          console.info('no file is selected');
+          return;
+        }else{
+          var reader = new FileReader();//新建一个FileReader
+          reader.readAsText(files[0], "UTF-8");//读取文件 
+          reader.onload = function(evt){ //读取完文件之后会回来这里
+            var fileString = evt.target.result;
+            var targets_toinsert = JSON.parse(fileString);
+            var i_cur = $(".agentnum").val();
+            var targets_cur = gettargets();
+            $.each(targets_toinsert, function(i, field){
+                var has_ip = false;
+                targets_cur.forEach(t => {
+                  if (t.Addr == field.ip){has_ip = true;}
+                });
+                if (! has_ip){
+                  Ctype=""
+                  CStype=""
+                  if(field.Type=="C"){
+                      Ctype="selected"
+                  }else{
+                      CStype="selected"
+                  }
+                  i = i + i_cur;
+                  $(".agentlist").append("<tr><td><input name='tsnum["+i+"]' value='targets["+i+"]={}' type='hidden'><input  name='targets["+i+"][\"Name\"]' placeholder='Name' value='"+field.country+" "+field.city+"' style='width:90%'><input name='targets["+i+"][\"Country\"]' placeholder='Country' value='"+field.country+"' style='width:90%'><input name='targets["+i+"][\"City\"]' placeholder='City' value='"+field.city+"' style='width:90%'><input name='targets["+i+"][\"Carrier\"]' placeholder='Carrier' value='"+field.carrier+"' style='width:90%'></td><td><input  name='targets["+i+"][\"Addr\"]' style='width:90%' value='"+field.ip+"'></td><td><select name='targets["+i+"][\"Type\"]'  style='width:47px;'><option value='C'>C</option><option value='CS'>CS</option></select></td><td><input  name='targets["+i+"][\"Thdchecksec\"]'  style='width:90%' value='"+$("#Thdchecksec").val()+"'> </td><td><input  name='targets["+i+"][\"Thdloss\"]' style='width:90%' value='"+$("#Thdloss").val()+"'> </td><td><input  name='targets["+i+"][\"Thdavgdelay\"]'  style='width:90%' value='"+$("#Thdavgdelay").val()+"'> </td><td><input  name='targets["+i+"][\"Thdoccnum\"]' style='width:90%' value='"+$("#Thdoccnum").val()+"'> </td><td> <i onclick='deleteTr(this);' class='icon-large icon-trash'></i> </td></tr>");
+                  $(".agentnum").val(i+1);
+                }
+            });
+          }
+        }
     }
     $(function(){
         $.getJSON("/api/config.json",function(result){
@@ -340,10 +404,13 @@
                 }else{
                     CStype="selected"
                 }
-                $(".agentlist").append("<tr><td><input name='tsnum["+i+"]' value='targets["+i+"]={}' type='hidden'><input name='targets["+i+"][\"Name\"]' value='"+field.Name+"' style='width:90%'></td><td><input  name='targets["+i+"][\"Addr\"]'  style='width:90%' value='"+field.Addr+"'></td><td><select name='targets["+i+"][\"Type\"]'  style='width:47px;'><option value='C' "+Ctype+">C</option><option value='CS'"+CStype+">CS</option></select></td><td><input   name='targets["+i+"][\"Thdchecksec\"]' style='width:90%' value='"+field.Thdchecksec+"'> </td><td><input  name='targets["+i+"][\"Thdloss\"]' style='width:90%' value='"+field.Thdloss+"'> </td><td><input  name='targets["+i+"][\"Thdavgdelay\"]' style='width:90%' value='"+field.Thdavgdelay+"'> </td><td><input  name='targets["+i+"][\"Thdoccnum\"]' style='width:90%' value='"+field.Thdoccnum+"'> </td><td><i onclick='deleteTr(this);' class='icon-large icon-trash'></i></td></tr>");
+                $(".agentlist").append("<tr><td style='width:150px'><input name='tsnum["+i+"]' value='targets["+i+"]={}' type='hidden'><input name='targets["+i+"][\"Name\"]' placeholder='Name' value='"+field.Name+"' style='width:90%'><input name='targets["+i+"][\"Country\"]' placeholder='Country' value='"+field.Country+"' style='width:90%'><input name='targets["+i+"][\"City\"]' placeholder='City' value='"+field.City+"' style='width:90%'><input name='targets["+i+"][\"Carrier\"]' placeholder='Carrier' value='"+field.Carrier+"' style='width:90%'></td><td><input  name='targets["+i+"][\"Addr\"]'  style='width:150px' value='"+field.Addr+"'></td><td><select name='targets["+i+"][\"Type\"]'  style='width:47px;'><option value='C' "+Ctype+">C</option><option value='CS'"+CStype+">CS</option></select></td><td><input   name='targets["+i+"][\"Thdchecksec\"]' style='width:90%' value='"+field.Thdchecksec+"'> </td><td><input  name='targets["+i+"][\"Thdloss\"]' style='width:90%' value='"+field.Thdloss+"'> </td><td><input  name='targets["+i+"][\"Thdavgdelay\"]' style='width:90%' value='"+field.Thdavgdelay+"'> </td><td><input  name='targets["+i+"][\"Thdoccnum\"]' style='width:90%' value='"+field.Thdoccnum+"'> </td><td><i onclick='deleteTr(this);' class='icon-large icon-trash'></i></td></tr>");
                 $(".agentnum").val(i+1);
             });
         });
+
+        // add file input change event listen
+        $("#load-input").context.addEventListener("change", loadAddData); 
     });
 </script>
 
